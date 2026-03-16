@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include 'manager/sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <!-- Title -->
+    <h1 class="page-title">Staff Profile — {{ staff.username }}</h1>
+    <p class="page-subtitle">
+        Overview of billing activity and performance for this staff member.
+    </p>
+
+    <!-- Top summary row -->
+    <div class="stats-grid" style="margin-top: 10px;">
+        <div class="stats-card">
+            <h2>{{ bills_count }}</h2>
+            <p>Bill(s) handled</p>
+        </div>
+        <div class="stats-card">
+            <h2>₹ {{ "%.2f"|format(total_billed) }}</h2>
+            <p>Total billed</p>
+        </div>
+        <div class="stats-card">
+            <h2>₹ {{ "%.2f"|format(avg_bill) }}</h2>
+            <p>Average bill</p>
+        </div>
+        <div class="stats-card">
+            <h2>
+                {% if last_bill %}
+                    {{ last_bill.created_at.strftime("%d-%m-%Y %H:%M") }}
+                {% else %}
+                    —
+                {% endif %}
+            </h2>
+            <p>Last billed</p>
+        </div>
+    </div>
+
+    <!-- Basic staff info card -->
+    <div class="card mt-3" style="padding: 12px 16px; border-radius: 10px;">
+        <h5 style="margin-bottom: 8px;">👨‍💼 Staff Details</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <strong>Username:</strong> {{ staff.username }}
+            </div>
+            <div class="col-md-4">
+                <strong>Email:</strong> {{ staff.email or "—" }}
+            </div>
+            <div class="col-md-4">
+                <strong>Role:</strong> {{ staff.role|capitalize }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bills table -->
+    <div class="recent-section" style="margin-top: 24px;">
+        <h3 class="section-title">🧾 Bills by {{ staff.username }}</h3>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Date &amp; Time</th>
+                        <th class="text-end">Net Total (₹)</th>
+                        <th class="text-center">Payment Mode</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if bills %}
+                        {% for bill in bills %}
+                        <tr>
+                            <td>#{{ bill.id }}</td>
+                            <td>{{ bill.created_at.strftime("%d-%m-%Y %H:%M") }}</td>
+                            <td class="text-end">
+                                {{ "%.2f"|format(bill.total or 0) }}
+                            </td>
+
+                            <!-- Payment mode badge -->
+                            <td class="text-center">
+                                {% set pm = (bill.payment_mode or 'CASH')|upper %}
+                                <span class="status-badge
+                                    {% if pm == 'CASH' %}status-cash
+                                    {% elif pm in ['ONLINE', 'UPI'] %}status-online
+                                    {% elif pm == 'CARD' %}status-card
+                                    {% else %}status-cash{% endif %}">
+                                    {{ pm }}
+                                </span>
+                            </td>
+
+                            <!-- Bill status badge -->
+                            <td class="text-center">
+                                {% set st = (bill.status or 'PAID')|upper %}
+                                <span class="status-badge
+                                    {% if st == 'PAID' %}status-paid
+                                    {% elif st == 'PARTIAL' %}status-partial
+                                    {% elif st == 'RETURNED' %}status-returned
+                                    {% elif st == 'CREDIT' %}status-credit
+                                    {% else %}status-paid{% endif %}">
+                                    {{ st }}
+                                </span>
+                            </td>
+
+                            <!-- View button (opens receipt) -->
+                            <td class="text-center">
+                                <a href="{{ url_for('staff.pos_receipt', bill_id=bill.id) }}"
+                                   class="btn btn-sm btn-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">
+                                No bills found for this staff member.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Back button -->
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('manager.staff_list') }}" class="btn btn-secondary">
+            ← Back to Staff List
+        </a>
+    </div>
+</div>
+
+<!-- Small badge styling (if not already in your CSS) -->
+<style>
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Payment mode colors */
+.status-cash {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+.status-online {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+.status-card {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+/* Bill status colors */
+.status-paid {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.status-partial {
+    background: #fff8e1;
+    color: #f9a825;
+}
+.status-returned {
+    background: #ffebee;
+    color: #c62828;
+}
+.status-credit {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+</style>
+{% endblock %}

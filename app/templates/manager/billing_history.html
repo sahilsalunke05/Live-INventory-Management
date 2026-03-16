@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include "manager/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<style>
+    /*BILLING FILTER STYLES */
+
+.billing-filter-grid {
+    grid-template-columns: repeat(4, 1fr) 1.2fr;
+    align-items: end;
+}
+
+.filter-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border: 1px solid #e2ebf8;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.filter-group .form-control {
+    padding: 8px 10px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.filter-group .form-control:focus {
+    border-color: #2d6cdf;
+    box-shadow: 0 0 0 1px rgba(45,108,223,0.15);
+}
+
+.filter-action .btn {
+    padding: 9px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .billing-filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .billing-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+<div class="page-content">
+    <h1 class="page-title">Billing History</h1>
+    <p class="page-subtitle">
+        View and manage all bills generated in the system with filters including payment mode.
+    </p>
+
+    <!-- Quick summary cards -->
+    <div class="stats-grid">
+        <div class="stats-card">
+            <h2>{{ total_bills }}</h2>
+            <p>Total Bills (filtered)</p>
+        </div>
+        <div class="stats-card">
+            <h2>₹ {{ "%.2f"|format(total_sales or 0) }}</h2>
+            <p>Total Sales (filtered)</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <!-- 🔍 Billing Filters -->
+<div class="filter-card">
+    <form method="get" class="filter-form">
+
+        <div class="filter-grid billing-filter-grid">
+
+            <!-- From date -->
+            <div class="filter-group">
+                <label>From Date</label>
+                <input type="date"
+                       name="start_date"
+                       value="{{ start_date }}"
+                       class="form-control">
+            </div>
+
+            <!-- To date -->
+            <div class="filter-group">
+                <label>To Date</label>
+                <input type="date"
+                       name="end_date"
+                       value="{{ end_date }}"
+                       class="form-control">
+            </div>
+
+            <!-- Staff -->
+            <div class="filter-group">
+                <label>Staff</label>
+                <select name="staff_id" class="form-control">
+                    <option value="">All Staff</option>
+                    {% for s in staffs %}
+                        <option value="{{ s.id }}"
+                            {% if selected_staff_id == s.id %}selected{% endif %}>
+                            {{ s.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Payment Mode -->
+            <div class="filter-group">
+                <label>Payment Mode</label>
+                <select name="payment_mode" class="form-control">
+                    <option value="">All Modes</option>
+                    <option value="CASH"   {% if selected_payment_mode == "CASH" %}selected{% endif %}>Cash</option>
+                    <option value="ONLINE" {% if selected_payment_mode == "ONLINE" %}selected{% endif %}>Online / UPI</option>
+                    <option value="CARD"   {% if selected_payment_mode == "CARD" %}selected{% endif %}>Card</option>
+                </select>
+            </div>
+
+            <!-- Apply button -->
+            <div class="filter-action">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+    <!-- Bills table -->
+    <div class="table-responsive mt-3">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Staff</th>
+                    <th>Date & Time</th>
+                    <th>Subtotal (₹)</th>
+                    <th>Discount (₹)</th>
+                    <th>GST (₹)</th>
+                    <th>Net Total (₹)</th>
+                    <th>Payment Mode</th>
+                    <!-- <th>Status</th> -->
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                <tr>
+                    <td>#{{ bill.id }}</td>
+                    <td>{{ bill.staff.username }}</td>
+                    <td>{{ bill.created_at.strftime("%d-%m-%Y %H:%M") }}</td>
+                    <td>{{ "%.2f"|format(bill.subtotal or bill.total or 0) }}</td>
+                    <td>{{ "%.2f"|format(bill.discount or 0) }}</td>
+                    <td>{{ "%.2f"|format((bill.cgst or 0) + (bill.sgst or 0)) }}</td>
+                    <td>{{ "%.2f"|format(bill.total or 0) }}</td>
+
+                    <!-- Payment Mode Badge -->
+                    <td>
+                        <span class="badge bg-info text-dark">
+                            {{ bill.payment_mode }}
+                        </span>
+                    </td>
+
+                    <!-- Colored status badge
+                    <td>
+                        {% set st = (bill.status or 'PAID')|upper %}
+                        <span class="status-badge
+                            {% if st == 'PAID' %}status-paid
+                            {% elif st == 'PARTIAL' %}status-partial
+                            {% elif st == 'RETURNED' %}status-returned
+                            {% elif st == 'CREDIT' %}status-credit
+                            {% else %}status-paid{% endif %}">
+                            {{ st }}
+                        </span>
+                    </td> -->
+
+                    <td>
+                        <a href="{{ url_for('staff.pos_receipt', bill_id=bill.id) }}"
+                           class="btn btn-sm btn-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="10" class="text-center">
+                        No bills found for selected filters.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

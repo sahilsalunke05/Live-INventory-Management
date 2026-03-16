@@ -1,0 +1,91 @@
+<div class="sidebar-container">
+    {% set current_endpoint = request.endpoint or '' %}
+
+    <h3 class="sidebar-title">
+        <i class="fas fa-user-tie"></i> Manager
+    </h3>
+
+    <!-- DASHBOARD -->
+    <a href="{{ url_for('manager.dashboard') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+
+    <!-- SECTION: PRODUCTS -->
+    <div class="sidebar-section-label">PRODUCTS</div>
+    <a href="{{ url_for('manager.add_product') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.add_product' %}active{% endif %}">
+        <i class="fas fa-plus-circle"></i> Add Product
+    </a>
+    <a href="{{ url_for('manager.view_products') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.view_products' %}active{% endif %}">
+        <i class="fas fa-box-open"></i> View Products
+    </a>
+
+    <!-- SECTION: STAFF MANAGEMENT -->
+    <div class="sidebar-section-label">STAFF MANAGEMENT</div>
+    <a href="{{ url_for('manager.staff_list') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.staff_list' %}active{% endif %}">
+        <i class="fas fa-users"></i> View Staff
+    </a>
+    <a href="{{ url_for('manager.add_staff') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.add_staff' %}active{% endif %}">
+        <i class="fas fa-user-plus"></i> Add Staff / Manager
+    </a>
+
+    <!-- SECTION: BILLING & REPORTS -->
+    <div class="sidebar-section-label">BILLING & REPORTS</div>
+    <a href="{{ url_for('manager.billing_history') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.billing_history' %}active{% endif %}">
+        <i class="fas fa-history"></i> Billing History
+    </a>
+    <a href="{{ url_for('manager.reports') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.reports' %}active{% endif %}">
+        <i class="fas fa-chart-line"></i> Reports
+    </a>
+
+    <!-- LOW STOCK ALERTS -->
+    <div class="sidebar-section-label">ALERTS</div>
+    <a href="{{ url_for('manager.alerts') }}"
+       class="sidebar-link {% if current_endpoint == 'manager.alerts' %}active{% endif %}">
+        <i class="fas fa-exclamation-triangle"></i> Low Stock Alerts
+        {% if low_stock_count is defined and low_stock_count > 0 %}
+            <span class="sidebar-badge">{{ low_stock_count }}</span>
+        {% endif %}
+    </a>
+
+    <!-- LOGOUT -->
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<style>
+/* Small section labels inside sidebar – matches your theme */
+.sidebar-section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: #5f6b87;
+    padding: 10px 12px 4px;
+    opacity: 0.9;
+}
+
+/* Active link style – same vibe as before */
+.sidebar-link.active {
+    background: #d5e7ff;
+    color: #0047a3;
+    font-weight: 600;
+}
+
+/* Low-stock badge */
+.sidebar-badge {
+    background: #d9534f;
+    border-radius: 12px;
+    color: white;
+    padding: 2px 7px;
+    font-size: 10px;
+    margin-left: auto;
+}
+</style>
