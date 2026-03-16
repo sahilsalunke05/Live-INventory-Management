@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include "staff/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================
+   FILTER CARD – STAFF BILLS
+   ========================= */
+
+.filter-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2ebf8;
+}
+
+.filter-card .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0d47a1;
+    margin-bottom: 4px;
+}
+
+.filter-card .form-control {
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid #c7d7f0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-card .form-control:focus {
+    outline: none;
+    border-color: #2d6cdf;
+    box-shadow: 0 0 0 2px rgba(45, 108, 223, 0.15);
+}
+
+/* Apply button */
+.filter-card .btn-primary {
+    height: 38px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    background: linear-gradient(135deg, #1f4f9c, #2d6cdf);
+    border: none;
+}
+
+.filter-card .btn-primary i {
+    margin-right: 4px;
+}
+
+/* Small helper text spacing */
+.filter-card .col-md-2,
+.filter-card .col-md-3 {
+    margin-bottom: 6px;
+}
+
+/* Responsive polish */
+@media (max-width: 768px) {
+    .filter-card {
+        padding: 12px 14px;
+    }
+
+    .filter-card .btn-primary {
+        width: 100%;
+    }
+}
+</style>
+<div class="page-padding">
+    <h1 class="page-title">🧾 My Bills</h1>
+    <p class="page-subtitle">
+        All bills created by you. Use filters to quickly find any bill.
+    </p>
+
+    <!-- Quick stats row -->
+    <div class="stats-grid">
+        <div class="stats-card">
+            <h2>{{ today_count }}</h2>
+            <p>Bills Today</p>
+        </div>
+        <div class="stats-card">
+            <h2>₹ {{ "%.2f"|format(today_sales or 0) }}</h2>
+            <p>Today's Sales</p>
+        </div>
+        <div class="stats-card">
+            {% if last_bill %}
+                <h2>#{{ last_bill.id }}</h2>
+                <p>Last bill • {{ last_bill.created_at.strftime("%d-%m-%Y %H:%M") }}</p>
+            {% else %}
+                <h2>–</h2>
+                <p>No bills yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card mt-3">
+        <form class="row g-2" method="get">
+            <div class="col-md-3">
+                <label class="form-label">From date</label>
+                <input type="date" name="date_from"
+                       value="{{ date_from }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To date</label>
+                <input type="date" name="date_to"
+                       value="{{ date_to }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Min total</label>
+                <input type="number" step="0.01" name="min_total"
+                       value="{{ min_total }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Max total</label>
+                <input type="number" step="0.01" name="max_total"
+                       value="{{ max_total }}" class="form-control">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bills table -->
+    <div class="table-responsive mt-3">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>  <!-- ✅ NEW -->
+                    <th>Subtotal (₹)</th>
+                    <th>Discount (₹)</th>
+                    <th>GST (₹)</th>
+                    <th>Net Total (₹)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                <tr>
+                    <td>#{{ bill.id }}</td>
+                    <td>{{ bill.created_at.strftime("%d-%m-%Y %H:%M") }}</td>
+
+                    <!-- ✅ STATUS with colored badges -->
+                    <td>
+                        {% set s = (bill.status or 'PAID') %}
+                        {% if s == 'PAID' %}
+                            <span class="badge badge-paid">PAID</span>
+                        {% elif s == 'PARTIAL' %}
+                            <span class="badge badge-partial">PARTIAL</span>
+                        {% elif s == 'RETURNED' %}
+                            <span class="badge badge-returned">RETURNED</span>
+                        {% elif s == 'CREDIT' %}
+                            <span class="badge badge-credit">CREDIT</span>
+                        {% else %}
+                            <span class="badge badge-unknown">{{ s }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ "%.2f"|format(bill.subtotal or bill.total or 0) }}</td>
+                    <td>{{ "%.2f"|format(bill.discount or 0) }}</td>
+                    <td>{{ "%.2f"|format((bill.cgst or 0) + (bill.sgst or 0)) }}</td>
+                    <td>{{ "%.2f"|format(bill.total or 0) }}</td>
+                    <td>
+                        <a href="{{ url_for('staff.pos_receipt', bill_id=bill.id) }}"
+                           class="btn btn-sm btn-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">
+                        You haven't created any bills yet.
+                        <a href="{{ url_for('staff.pos') }}">Create your first bill</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
