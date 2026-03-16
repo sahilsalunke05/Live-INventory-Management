@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include "manager/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">Manager Dashboard</h1>
+    <p class="page-subtitle">Manage products and monitor billing activity.</p>
+
+    {% if low_stock %}
+<div class="alert alert-warning" role="alert">
+    <strong>⚠ Low Stock Alert (Top 3)</strong>
+    <ul class="mb-0">
+        {% for alert in low_stock %}
+        <li>
+            {{ alert.product_name }} —
+            <strong>{{ alert.stock }} pcs</strong>
+            <small class="text-muted">
+                ({{ alert.timestamp.strftime("%d-%m-%Y %H:%M") }})
+            </small>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stats-card">
+            <h2>{{ total_products }}</h2>
+            <p>Total Products</p>
+        </div>
+        <div class="stats-card">
+            <h2>{{ total_bills }}</h2>
+            <p>Total Bills</p>
+        </div>
+        <div class="stats-card">
+            <h2>₹ {{ "%.2f"|format(total_sales) }}</h2>
+            <p>Total Sales</p>
+        </div>
+        <div class="stats-card">
+            <h2>{{ total_staff }}</h2>
+            <p>Staff Members</p>
+        </div>
+    </div>
+
+    <!-- Recent Bills -->
+    <div class="recent-section">
+        <h3 class="section-title">🧾 Recent Bills</h3>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Staff</th>
+                    <th>Total (₹)</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in recent_bills %}
+                <tr>
+                    <td>#{{ bill.id }}</td>
+                    <td>{{ bill.staff.username }}</td>
+                    <td>{{ "%.2f"|format(bill.total) }}</td>
+                    <td>{{ bill.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No recent bills available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
