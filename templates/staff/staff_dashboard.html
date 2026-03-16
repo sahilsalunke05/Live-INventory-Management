@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+    {% include "staff/sidebar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-padding">
+    <h1 class="page-title">👨‍💼 Staff Dashboard</h1>
+    <p class="page-subtitle">
+        Welcome, {{ current_user.username }}. Manage customer billing with live stock validation.
+    </p>
+
+    <div class="stats-grid" style="display:flex; flex-wrap:wrap; gap:16px; margin-top:10px;">
+        <!-- Card 1: POS Billing -->
+        <div class="stats-card" style="flex:1 1 260px; background:#ffffff; border-radius:10px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <h3 style="margin:0; font-size:16px; color:#0d47a1;">
+                    <i class="fas fa-receipt"></i> POS Billing
+                </h3>
+            </div>
+            <p style="margin:8px 0 12px; font-size:14px; color:#555;">
+                Create customer bills quickly with automatic stock checks and GST-ready totals.
+            </p>
+            <a href="{{ url_for('staff.pos') }}" class="btn btn-primary btn-sm">
+                Go to POS
+            </a>
+        </div>
+
+        <!-- Card 2: Inventory-Aware -->
+        <div class="stats-card" style="flex:1 1 260px; background:#ffffff; border-radius:10px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+            <h3 style="margin:0; font-size:16px; color:#0d47a1;">
+                <i class="fas fa-boxes-stacked"></i> Inventory-Aware
+            </h3>
+            <p style="margin:8px 0 0; font-size:14px; color:#555;">
+                System prevents negative stock and shows only active products while billing.
+            </p>
+        </div>
+
+        <!-- Card 3: Staff Role Info -->
+        <div class="stats-card" style="flex:1 1 260px; background:#ffffff; border-radius:10px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+            <h3 style="margin:0; font-size:16px; color:#0d47a1;">
+                <i class="fas fa-user-tag"></i> Your Role
+            </h3>
+            <p style="margin:8px 0 0; font-size:14px; color:#555;">
+                Every bill you generate is linked to your account and visible to the manager in reports.
+            </p>
+        </div>
+    </div>
+
+    <!-- Optional: Short help section -->
+    <div style="margin-top:24px; max-width:700px;">
+        <h4 style="font-size:16px; color:#0d47a1; margin-bottom:6px;">
+            💡 Quick Tips
+        </h4>
+        <ul style="font-size:14px; color:#555; margin-left:18px;">
+            <li>Use the <b>POS Billing</b> button above to start a new customer bill.</li>
+            <li>You can apply <b>percentage discount</b> and the system will recalculate GST automatically.</li>
+            <li>Low stock products are highlighted to the manager so they can restock on time.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
